@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Echt oder Fake?</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #6a11cb, #2575fc);
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      color: #fff;
+    }
+
+    .score {
+      position: absolute;
+      top: 20px;
+      font-size: 1.4em;
+      font-weight: bold;
+    }
+
+    .card-container {
+      width: 90%;
+      max-width: 600px;
+      height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card {
+      background: #ffffff;
+      color: #333;
+      padding: 30px;
+      border-radius: 16px;
+      font-size: 1.3em;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      user-select: none;
+      transition: transform 0.3s ease;
+    }
+
+    .popup {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: rgba(255, 0, 0, 0.9);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+
+    .popup-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 14px;
+      text-align: center;
+      max-width: 90%;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      color: #222;
+    }
+
+    .popup-content button {
+      margin-top: 20px;
+      background: #27ae60;
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="score">Punkte: <span id="score">0</span></div>
+
+  <div class="card-container">
+    <div class="card" id="card">Lade These ...</div>
+  </div>
+
+  <div class="popup" id="popup">
+    <div class="popup-content">
+      <h2>Falsch!</h2>
+      <p>Du hast <span id="finalScore">0</span> Punkt(e) erreicht.</p>
+      <button onclick="restartGame()">Neu starten</button>
+    </div>
+  </div>
+
+  <script>
+    const realEvents = [
+      "In Finnland gibt es ein Handy-Weitwurf-Turnier.",
+      "Ein Pavian wurde in Südafrika als Zugbegleiter eingesetzt.",
+      "Island verbot den Namen ‚Lucifer‘ offiziell.",
+      "In Kanada wurde ein Elch als Trauzeuge eingetragen.",
+      "In Japan wurde ein Roboter zum Bürgermeisterkandidaten.",
+      "1993 gewann eine Katze einen Schönheitswettbewerb gegen 200 Hunde.",
+      "In Indien regnete es 2001 rot – Ursache unklar.",
+      "Ein Mann überlebte sieben Schiffsuntergänge und wurde Lotse.",
+      "In Island stoppte ein Straßenbau wegen Elfenprotesten.",
+      "In Frankreich fand ein Schneckenrennen mit 300 Teilnehmern statt."
+    ];
+
+    const fakeEvents = [
+      "In der Schweiz wurde ein Fußballspiel mit Ziegen als Schiedsrichter getestet.",
+      "Ein Künstler ließ sich ein drittes Ohr auf die Stirn implantieren.",
+      "In Dänemark existiert ein Park, in dem Pflanzen rückwärts wachsen.",
+      "In Kanada wurde ein Haus verurteilt, weil es zu symmetrisch war.",
+      "In Australien gibt es ein Hotel, in dem man singend schlafen muss.",
+      "In Rumänien wurde ein Tunnel zur Wasserrutsche umgebaut.",
+      "In Polen dürfen Ampeln tanzen, wenn niemand hinsieht.",
+      "In Island wurde ein Vulkan als ‚Haus des Jahres‘ ausgezeichnet.",
+      "In Griechenland ist Eulenrufen im Sommer verboten.",
+      "In Peru wurde ein Berg zur Nationalflagge erklärt."
+    ];
+
+    let score = 0;
+    let current = {};
+    const card = document.getElementById("card");
+    const scoreDisplay = document.getElementById("score");
+    const popup = document.getElementById("popup");
+    const finalScoreDisplay = document.getElementById("finalScore");
+
+    function getNewEvent() {
+      const isReal = Math.random() < 0.5;
+      const text = isReal
+        ? realEvents[Math.floor(Math.random() * realEvents.length)]
+        : fakeEvents[Math.floor(Math.random() * fakeEvents.length)];
+      return { text, isReal };
+    }
+
+    function showNewCard() {
+      current = getNewEvent();
+      card.textContent = current.text;
+      card.style.transform = "translateX(0px)";
+    }
+
+    function handleAnswer(swipedRight) {
+      const guessIsReal = swipedRight;
+      if (guessIsReal === current.isReal) {
+        score++;
+        scoreDisplay.textContent = score;
+        showNewCard();
+      } else {
+        finalScoreDisplay.textContent = score;
+        popup.style.display = "flex";
+      }
+    }
+
+    function restartGame() {
+      score = 0;
+      scoreDisplay.textContent = 0;
+      popup.style.display = "none";
+      showNewCard();
+    }
+
+    let startX = null;
+
+    card.addEventListener("touchstart", e => {
+      startX = e.changedTouches[0].clientX;
+    });
+
+    card.addEventListener("touchend", e => {
+      const endX = e.changedTouches[0].clientX;
+      const deltaX = endX - startX;
+
+      if (deltaX > 80) {
+        card.style.transform = "translateX(150%)";
+        setTimeout(() => handleAnswer(true), 200);
+      } else if (deltaX < -80) {
+        card.style.transform = "translateX(-150%)";
+        setTimeout(() => handleAnswer(false), 200);
+      }
+    });
+
+    // Start
+    showNewCard();
+  </script>
+</body>
+</html>
