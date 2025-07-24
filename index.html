@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Echt oder Fake?</title>
   <style>
     body {
@@ -28,7 +28,7 @@
     .card-container {
       width: 90%;
       max-width: 350px;
-      height: 400px;
+      height: 420px;
       position: relative;
       margin-top: 60px;
     }
@@ -46,9 +46,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: transform 0.3s ease, opacity 0.3s ease, background 0.3s ease;
+      transition: background 0.2s ease;
       user-select: none;
       overflow: hidden;
+      transform: translateX(0px) rotate(0deg);
     }
 
     .card::before {
@@ -73,14 +74,6 @@
       font-weight: bold;
       opacity: 0;
       transition: opacity 0.2s;
-    }
-
-    .card.left {
-      background: #ffe5e5;
-    }
-
-    .card.right {
-      background: #e5ffe5;
     }
 
     .card.left::before {
@@ -175,12 +168,13 @@
     function showNewCard() {
       current = getNewEvent();
       card.textContent = current.text;
-      card.style.transform = "translateX(0)";
+      card.style.transform = "translateX(0px) rotate(0deg)";
+      card.style.backgroundColor = "white";
       card.classList.remove("left", "right");
     }
 
-    function handleAnswer(rightSwipe) {
-      const isCorrect = (rightSwipe === current.isReal);
+    function handleAnswer(isRightSwipe) {
+      const isCorrect = (isRightSwipe === current.isReal);
       if (isCorrect) {
         score++;
         scoreDisplay.textContent = score;
@@ -198,29 +192,53 @@
       showNewCard();
     }
 
+    // Touchsteuerung mit Live-Feedback
     let startX = null;
 
     card.addEventListener("touchstart", e => {
       startX = e.changedTouches[0].clientX;
     });
 
+    card.addEventListener("touchmove", e => {
+      const currentX = e.changedTouches[0].clientX;
+      const deltaX = currentX - startX;
+      const rotation = deltaX / 15;
+      const opacity = Math.min(Math.abs(deltaX) / 150, 1);
+
+      card.style.transform = `translateX(${deltaX}px) rotate(${rotation}deg)`;
+
+      if (deltaX < -50) {
+        card.classList.add("left");
+        card.classList.remove("right");
+        card.style.backgroundColor = `rgba(255, 200, 200, ${opacity})`;
+      } else if (deltaX > 50) {
+        card.classList.add("right");
+        card.classList.remove("left");
+        card.style.backgroundColor = `rgba(200, 255, 200, ${opacity})`;
+      } else {
+        card.classList.remove("left", "right");
+        card.style.backgroundColor = "white";
+      }
+    });
+
     card.addEventListener("touchend", e => {
       const endX = e.changedTouches[0].clientX;
       const deltaX = endX - startX;
 
-      card.classList.remove("left", "right");
-
-      if (deltaX > 80) {
-        card.classList.add("right");
+      if (deltaX > 100) {
         card.style.transform = "translateX(150%) rotate(10deg)";
-        setTimeout(() => handleAnswer(true), 250);
-      } else if (deltaX < -80) {
-        card.classList.add("left");
+        setTimeout(() => handleAnswer(true), 200);
+      } else if (deltaX < -100) {
         card.style.transform = "translateX(-150%) rotate(-10deg)";
-        setTimeout(() => handleAnswer(false), 250);
+        setTimeout(() => handleAnswer(false), 200);
+      } else {
+        card.style.transform = "translateX(0px) rotate(0deg)";
+        card.classList.remove("left", "right");
+        card.style.backgroundColor = "white";
       }
     });
 
+    // Start
     showNewCard();
   </script>
 
