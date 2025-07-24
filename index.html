@@ -69,23 +69,10 @@
     </div>
   </div>
 
+  <!-- Laden der Thesen aus externer Datei -->
+  <script src="thesen.js"></script>
+  <!-- Hauptspiel-Logik -->
   <script>
-    const realEvents = [
-      "Ein Mann überlebte einen Sprung aus einem Flugzeug ohne Fallschirm, weil er auf einem Ameisenhaufen landete.",
-      "Ein Schüler hackte das Schwarze Brett seiner Schule und sagte Unterricht im Juli wegen Schneefall ab.",
-      "Ein Paketbote warf ein Paket über den Zaun – es landete punktgenau in ein offenes Klo."
-      // Du kannst hier beliebig viele echte Thesen ergänzen
-    ];
-
-    const fakeEvents = [
-      "In Schweden wurde ein Gesetz beschlossen, das tägliches Saunieren an Arbeitsplätzen erlaubt.",
-      "In Kanada wurde ein Elch offiziell zum Bürgermeister eines Dorfes gewählt – als Protestaktion.",
-      "Japan führte versuchsweise „Stille Züge“ ein, in denen nicht gesprochen werden darf.",
-      "In Frankreich wurde ein Weinfestival mit Traubenballons statt Weingläsern gefeiert.",
-      "In Portugal gibt es angeblich eine U-Bahn-Station, die nur nachts und bei Vollmond hält."
-      // Du kannst hier beliebig viele Fake-Thesen ergänzen
-    ];
-
     let allEvents = [...realEvents.map(t => ({ text: t, isReal: true })), ...fakeEvents.map(t => ({ text: t, isReal: false }))];
     let availableEvents = [...allEvents];
     let currentEvent = null;
@@ -127,9 +114,9 @@
       const rotate = deltaX * 0.1;
       card.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg)`;
       if (deltaX > 0) {
-        card.style.backgroundColor = '#d4fcd4'; // grün bei "echt"
+        card.style.backgroundColor = '#d4fcd4'; // grün = echt
       } else {
-        card.style.backgroundColor = '#ffd6d6'; // rot bei "fake"
+        card.style.backgroundColor = '#ffd6d6'; // rot = fake
       }
     });
 
@@ -156,6 +143,7 @@
       card.style.display = "none";
     }
 
+    // Starte das Spiel
     showEvent();
   </script>
 </body>
