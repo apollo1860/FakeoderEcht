@@ -4,444 +4,159 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Echt oder Fake?</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
       margin: 0;
-      font-family: 'Poppins', sans-serif;
-      background: linear-gradient(135deg, #3b8dff, #93d2ff);
+      font-family: Arial, sans-serif;
+      background-color: #a0c4ff;
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
+      align-items: center;
       height: 100vh;
       overflow: hidden;
     }
 
-    .score {
-      position: absolute;
-      top: 20px;
-      background: white;
-      padding: 10px 20px;
-      border-radius: 30px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-      font-weight: 600;
-      z-index: 10;
-    }
-
-    .card-stack {
-      position: relative;
+    .game-container {
+      text-align: center;
       width: 90%;
-      max-width: 260px;
-      height: 320px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      max-width: 400px;
     }
 
     .card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px 20px;
+      font-size: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      user-select: none;
+      transition: transform 0.3s ease, background-color 0.3s ease;
       position: absolute;
       width: 100%;
-      height: 100%;
+    }
+
+    #card-container {
+      position: relative;
+      height: 300px;
+      margin-bottom: 20px;
+    }
+
+    #score {
+      font-size: 18px;
+      margin-top: 20px;
+    }
+
+    #end-screen {
       background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2),
-                  0 0 30px rgba(255, 255, 255, 0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1rem;
-      padding: 20px;
-      text-align: center;
-      user-select: none;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-      animation: fadeInScale 0.4s ease;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
-    @keyframes fadeInScale {
-      from { opacity: 0; transform: scale(0.8); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    .card::before,
-    .card::after {
-      position: absolute;
-      font-size: 1.3rem;
-      font-weight: bold;
-      opacity: 0;
-      transition: opacity 0.2s;
-      text-shadow: 0 0 5px rgba(0,0,0,0.3);
-    }
-
-    .card::before {
-      content: "❌ FAKE";
-      color: red;
-      top: 16px;
-      left: 16px;
-    }
-
-    .card::after {
-      content: "✅ ECHT";
-      color: green;
-      top: 16px;
-      right: 16px;
-    }
-
-    .card.fake::before {
-      opacity: 1;
-    }
-
-    .card.real::after {
-      opacity: 1;
-    }
-
-    .popup {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(255, 0, 0, 0.85);
+    .hidden {
       display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-
-    .popup-content {
-      background: white;
-      color: black;
-      padding: 25px;
-      border-radius: 16px;
-      text-align: center;
-      max-width: 80%;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-      animation: fadeInScale 0.4s ease;
-    }
-
-    .popup-content h2 {
-      color: #e74c3c;
-    }
-
-    .popup-content button {
-      margin-top: 15px;
-      padding: 10px 20px;
-      font-size: 1rem;
-      background: #27ae60;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
     }
   </style>
 </head>
 <body>
-
-  <div class="score">Punkte: <span id="score">0</span></div>
-
-  <div class="card-stack" id="cardStack"></div>
-
-  <div class="popup" id="popup">
-    <div class="popup-content">
-      <h2>Falsch geraten!</h2>
-      <p>Du hast <span id="finalScore">0</span> Punkt(e) erreicht.</p>
-      <button onclick="restartGame()">Neu starten</button>
+  <div class="game-container">
+    <div id="card-container">
+      <div id="card" class="card"></div>
+    </div>
+    <div id="score">Punkte: 0</div>
+    <div id="end-screen" class="hidden">
+      <div id="end-message"></div>
+      <button onclick="location.reload()">Neustart</button>
     </div>
   </div>
 
   <script>
     const realEvents = [
-  "Ein Mann überlebte einen Sprung aus einem Flugzeug ohne Fallschirm, weil er auf einem Ameisenhaufen landete.",
-  "Eine Frau bekam während einer OP eine Lachgas-Verwechslung und erzählte dem Chirurgen Witze.",
-  "Bei einer Beerdigung fand man im Sargdeckel einen lebenden Fuchs.",
-  "Ein Schüler hackte das digitale Schwarze Brett seiner Schule und sagte Unterricht wegen Schneefall ab – im Juli.",
-  "Ein Paketbote warf ein Paket über den Zaun – es landete punktgenau in ein offenes Klo.",
-  "Eine Katze bestellte über ein Smart-Home-System versehentlich Futter im Wert von 200 Euro.",
-  "Ein Mann wurde verhaftet, weil Gesichtserkennung ihn für seinen unbekannten Zwillingsbruder hielt.",
-  "Ein DJ spielte zur Hochzeit versehentlich den Trauermarsch – niemand bemerkte es direkt.",
-  "Ein Pastor ließ bei der Taufe das Baby ins Becken fallen – voller Goldfische.",
-  "Ein Staubsaugerroboter entführte nachts eine Socke, die im Garten wieder auftauchte.",
-  "Ein Polizist fügte einem Blitzerfoto eine Sonnenbrille hinzu – und das Bild ging viral.",
-  "Ein Fußballer verletzte sich beim eigenen Jubel-Salto nach dem Tor.",
-  "Ein Flugzeug musste notlanden, weil ein Papagei im Gepäck „Bombe!“ schrie.",
-  "Eine Fahrschülerin fuhr bei der Prüfung rückwärts auf die Autobahn – und bestand wegen Prüferfehler.",
-  "Ein Kioskbesitzer stellte eine geladene Spielzeugpistole als Gewinn aus.",
-  "Eine Medikamentenlieferung per Drohne landete direkt im Kamin und verbrannte.",
-  "Ein Fernsehmoderator schluckte eine Fliege im Live-TV und sprach einfach weiter.",
-  "Ein Schildkrötenrennen wurde abgebrochen, weil alle Tiere in verschiedene Richtungen liefen.",
-  "Ein Student schrieb eine Hausarbeit komplett im Chatverlauf-Stil – und bekam eine 1,0.",
-  "Eine Schwangere bekam während einer Achterbahnfahrt Wehen – Geburt im Wartebereich.",
-  "Ein Mann kippte beim Rasieren nach hinten – mit halb rasiertem Gesicht in der Notaufnahme.",
-  "Eine Schlange wurde bei der Tierkommunikation als 'vegetarisch' beschrieben.",
-  "Ein Duftkerzenlager löste einen Feuermelder aus – 40 Etagen wurden evakuiert.",
-  "Ein Beamer spielte bei einem Vortrag private Urlaubsfotos – versehentlich per Bluetooth.",
-  "Eine Hochzeitstorte wurde irrtümlich an einen Junggesellenabschied serviert – beide Gruppen feierten zusammen.",
-  "Ein Mann reichte ein Gulasch-Rezept als Bewerbung ein – und wurde eingestellt.",
-  "Ein Nachbar beschwerte sich täglich mit ausgedruckten Emoji-Zetteln im Briefkasten.",
-  "Ein Hahn verjagte den Paketboten – der kündigte danach seine Route.",
-  "Eine Achterbahn wurde geschlossen, weil Möwen sie als Treffpunkt nutzten.",
-  "Ein Schüler gewann 'Stadt, Land, Fluss' mit dem Wort 'Zahnschnecke' – das es nicht gibt.",
-  "Ein Mann sprang mit VR-Brille ins Becken, weil er sie für eine Taucherbrille hielt.",
-  "Ein Kind lief bei einem Rennen in die falsche Richtung – und gewann.",
-  "Ein Chor sang drei Minuten lang das falsche Lied – bevor es jemand merkte.",
-  "Ein Werbespot startete gleichzeitig auf Radio, TV und Spotify – überlagert.",
-  "Eine Frau bestellte ein Besteckset – und bekam 1.111 Löffel.",
-  "Ein Mann erlitt eine temporäre Erblindung durch weiße Schrift auf einem hellen Smartphone-Hintergrund.",
-  "Ein Selbstbedienungsautomat erkannte eine Aubergine als 'kleines Pferd'.",
-  "Ein Politiker hielt versehentlich eine Rede auf einer Hochzeit statt auf der Demo.",
-  "Ein Büro-Wasserspender war mit Weißwein gefüllt – „zur Motivation“.",
-  "Eine Kamera filmte versehentlich 48 Stunden lang eine Baustellenkatze – der Stream wurde Kult.",
-  "Ein Schüler fälschte ein Attest – enttarnt durch seine Apple-Watch, die Paintball-Aktivität anzeigte.",
-  "Eine Matheprüfung wurde gestoppt, weil aus Versehen Sudoku auf alle Bögen gedruckt war.",
-  "Ein Kind gewann einen Schreibwettbewerb mit einem Bild – das auf der Rückseite des Blattes war.",
-  "Ein Mann schloss sich beim Drive-in aus seinem Auto aus – das Auto rollte weiter zur Ausgabe.",
-  "Ein Paket enthielt genau das Geschenk, das der Empfänger selbst vor Monaten bestellt hatte und vergessen hatte.",
-  "Ein Papagei flog mit der Brille eines Joggers davon – sie wurde Tage später im Park gefunden.",
-  "Ein Anruf lief im Radio-Verkehrsfunk, weil der Anrufer vergaß aufzulegen.",
-  "Zwillinge wurden durch eine Dating-App gematcht – und entdeckten sich dabei neu.",
-  "Ein Naturfoto-Wettbewerb wurde durch ein versehentliches Handy-Taschenbild gewonnen.",
-  "Eine automatische Wanduhr explodierte durch Akkuversagen – beim Wechsel zur Sommerzeit.",
-  "In Finnland wird ein offizielles Handy-Weitwurf-Turnier veranstaltet.",
-  "Ein Pavian wurde in Südafrika als Zugbegleiter angestellt.",
-  "In Island ist der Name „Lucifer“ als Vorname verboten.",
-  "In Kanada wurde ein Elch als symbolischer Trauzeuge eingetragen.",
-  "In Japan kandidierte ein Roboter bei einer Bürgermeisterwahl.",
-  "In Norwegen wurde ein Elch versehentlich in einem Fitnessstudio eingesperrt.",
-  "In Neuseeland gilt ein Fluss offiziell als lebendes Wesen mit Rechten.",
-  "In Brasilien heiratete eine Frau einen Pappaufsteller von Robert Pattinson.",
-  "In den Niederlanden wurde ein Mann zehn Jahre lang fälschlich für tot gehalten.",
-  "In Südkorea gibt es einen Wettbewerb im „Nichtstun“.",
-  "In Griechenland wurde einem Mann verboten, nachts Eulenrufe nachzuahmen.",
-  "In Peru wurde ein Berg zum nationalen Wahrzeichen mit Flaggenstatus erklärt.",
-  "In Pakistan wurde ein Esel wegen Drogenschmuggels festgenommen.",
-  "In Rumänien heiratete ein Mann symbolisch seine Zimmertür.",
-  "In Belgien bieten Bauern Yoga mit Kühen an.",
-  "In Kanada wurde ein Mann angezeigt, weil er Tausende Tweets an eine Taube richtete.",
-  "In Dänemark zeigte ein Künstler dem Museum ein leeres Werk mit dem Titel „Take the Money and Run“.",
-  "In Italien durfte ein Mieter umsonst wohnen, weil der Vertrag nie unterschrieben wurde.",
-  "In Mexiko wurde ein Baby nach einem Hurrikan benannt.",
-  "In Österreich wurde ein Mann beim Rückwärtslauf schneller als ein Pferd.",
-  "In Japan gibt es ein Fest, bei dem Männer mit Lendenschurz um ein heiliges Holzobjekt ringen.",
-  "In Indien ließ sich ein Busfahrer als Gott verehren – mit eigenem Tempel.",
-  "In Deutschland wurde ein Mann betrunken im Einkaufswagen auf der Autobahn gefunden.",
-  "In der Mongolei wurde ein Adler mit einer Ehrenmedaille ausgezeichnet.",
-  "In Luxemburg wurde ein Taxifahrer bekannt, weil er seine Kunden mit Operngesang überraschte.",
-  "In Argentinien wurde ein Pferd zum symbolischen Bürgermeister einer Ortschaft gewählt.",
-  "In Polen trat eine Schildkröte bei einem Schneckenrennen an – und gewann.",
-  "In Südafrika wurde ein Wildschwein durch eine Kindervote zum „Zoo-Bürgermeister“.",
-  "In Thailand wurde ein Affe offizielles Maskottchen einer Polizeistation.",
-  "In Indonesien bekam ein Kaktus den Namen eines Politikers, weil er „stachelig, aber beliebt“ war.",
-  "In Russland wurde ein Wettbewerb im „langsamen Gähnen“ ausgetragen.",
-  "In Nigeria verkleidete sich ein Mann als seine eigene Schwester, um nicht verhaftet zu werden.",
-  "In China versuchte ein Mann, Gesichtserkennung auszutricksen – mit einem Pappbild seines Gesichts.",
-  "In Irland durfte ein Schwein als Studiogast in einer Radiosendung auftreten.",
-  "In Albanien wurde ein Häftling begnadigt, weil sein Papagei „Bitte um Gnade“ rief.",
-  "In Kroatien eröffnete ein Hotel ausschließlich für Katzen.",
-  "In der Schweiz wurde ein Verein für „Gurken in Hosentaschen“ gegründet.",
-  "In Georgien wurde ein Orangenbaum symbolisch als Zeuge vor Gericht geladen.",
-  "In Ägypten behauptete ein Mann, die Reinkarnation Kleopatras zu sein – und forderte Sonderrechte.",
-  "In Australien diente ein Känguru als offizielles Feuerwehrmaskottchen.",
-  "In Bulgarien wurde eine Laterne als Wunderobjekt verehrt.",
-  "In Spanien wurde einer Ziege die Ehrenbürgerschaft verliehen.",
-  "In Laos wurde ein Pilz fälschlich zum Nationaltier erklärt.",
-  "In Serbien trat eine Kuh ein modernes Gemälde um – das danach gefeiert wurde.",
-  "In Griechenland wurde ein Vulkan für ein Tourismusprojekt als „bestes Haus des Jahres“ beworben.",
-  "In Schweden suchte man per Aushang einen Hasen, der regelmäßig Zug fuhr.",
-  "In Kolumbien wurde eine Bushaltestelle aus Versehen als UNESCO-Kulturerbe vorgeschlagen.",
-  "In Frankreich fuhr ein Mann fast zwei Jahrzehnte lang Krankenwagen – ohne Führerschein.",
-  "In Estland eskortierte die Polizei eine Entenfamilie quer durch die Hauptstadt.",
-  "In Japan gibt es einen Fernsehkanal, der nur schlafende Katzen zeigt – rund um die Uhr."
-];
+      "Ein Mann überlebte einen Sprung aus einem Flugzeug ohne Fallschirm, weil er auf einem Ameisenhaufen landete.",
+      "Ein Schüler hackte das Schwarze Brett seiner Schule und sagte Unterricht im Juli wegen Schneefall ab.",
+      "Ein Paketbote warf ein Paket über den Zaun – es landete punktgenau in ein offenes Klo."
+      // Du kannst hier beliebig viele echte Thesen ergänzen
+    ];
 
     const fakeEvents = [
-  "In Schweden wurde ein Gesetz beschlossen, das tägliches Saunieren an Arbeitsplätzen erlaubt.",
-  "In Kanada wurde ein Elch offiziell zum Bürgermeister eines Dorfes gewählt – als Protestaktion.",
-  "Japan führte versuchsweise „Stille Züge“ ein, in denen nicht gesprochen werden darf – selbst nicht am Handy.",
-  "In Italien wird seit 2023 ein Pizza-Diplom für Touristen angeboten – mit offizieller Urkunde.",
-  "In Australien wurde ein Flughafen für einen Tag von Kängurus blockiert.",
-  "In Norwegen wurde ein Tunnel so dekoriert, dass er wie ein Computerspiel-Level wirkt.",
-  "In Frankreich wurde eine Ampel installiert, die bei Regen automatisch „Baguette-Rot“ zeigt.",
-  "Südkorea testet Gesichtserkennung an Zebrastreifen – um unaufmerksame Fußgänger automatisch zu stoppen.",
-  "In Deutschland wurde ein Verkehrsschild mit genderneutralem Fußgängersymbol eingeführt.",
-  "In Brasilien wurde eine Schule eröffnet, in der Unterricht ausschließlich am Strand stattfindet.",
-  "In Großbritannien durfte ein Schaf in Schuluniform am Unterricht teilnehmen – als Anti-Mobbing-Projekt.",
-  "In Island wurde eine Firma gegründet, die Lava als Beautyprodukt verkauft.",
-  "In Indien wurde eine Curry-Sorte entwickelt, die angeblich hellsichtig machen soll.",
-  "In Spanien entstand ein Trend, Tapas über Lieferdrohnen direkt ans Strandtuch zu bringen.",
-  "In Frankreich wurde ein Weinfestival mit Traubenballons statt Weingläsern gefeiert.",
-  "China verbot für eine Woche das Selfie-Machen an historischen Orten – zum Schutz der Architektur.",
-  "In Polen wurden öffentliche Kühlschränke für verlorene Pierogi eingerichtet.",
-  "Neuseeland testete eine App, bei der Schafe digitale Stimmen erhalten, um ihren Besitzer zu rufen.",
-  "In Russland wurde eine Eisskulptur von Putin aus Butter gefertigt – als TV-Wettbewerb.",
-  "In Griechenland wurde versehentlich eine Ruine restauriert, die sich später als moderner Bau entpuppte.",
-  "In Tschechien wurde Bier offiziell als Schulsport anerkannt – im Rahmen einer Satirewoche.",
-  "In Argentinien bekam ein Fußballspieler eine gelbe Karte für zu leidenschaftliches Tango-Tanzen beim Torjubel.",
-  "In Ägypten wurde ein Pharaonenmuseum geschlossen, weil ein Influencer darin übernachtete.",
-  "In Thailand soll ein Tempel WLAN-freie Zonen mit Elektroschockwänden durchgesetzt haben.",
-  "In Nigeria wurde ein gesamtes Dorf in ein Escape Room-Touristenkonzept umgewandelt.",
-  "Belgien verteilte im Sommer kostenlose Pommes an alle Haushalte – wegen Kartoffelüberproduktion.",
-  "In Mexiko wurde ein Straßennetz nach Tacosorten benannt – inklusive „Salsa-Allee“.",
-  "In der Türkei wurde ein Minarett versehentlich als Richtfunkmast registriert – über Jahre.",
-  "In den USA installierte ein Ort Statuen von Bürgern, die mehr als 100 Google-Bewertungen abgegeben hatten.",
-  "In Österreich wurde ein „Alpen-Jodeln-für-Alle“-Tag eingeführt – Jodeln auf öffentlichen Plätzen erwünscht.",
-  "In Portugal gibt es angeblich eine U-Bahn-Station, die nur nachts und bei Vollmond hält.",
-  "In der Ukraine wurde ein Waldstück als „nationales Labyrinth“ anerkannt – es hat keinen Ausgang.",
-  "Südafrika entwickelte ein E-Bike für Zebras, um Langstreckenmigration zu unterstützen.",
-  "In Litauen wurde ein Park eröffnet, in dem nur Menschen mit Schnurrbart Eintritt bekommen.",
-  "In Ungarn entstand ein Hotel, das alle Gäste zwingt, mittelalterliche Kleidung zu tragen.",
-  "In Kolumbien wurde ein Berg als Nationaldenkmal erklärt – weil er wie ein Arepa aussieht.",
-  "In Iran wurde eine App eingeführt, die Gebetsrufe durch berühmte Popsongs ersetzt – als Scherzprojekt.",
-  "In Dänemark wurde ein Freizeitpark eröffnet, in dem alle Attraktionen rückwärts laufen.",
-  "In Vietnam wurde ein Tempel entdeckt, in dem TikTok-Tänze als rituelle Bewegungen gelten.",
-  "Luxemburg installierte eine Ampel, die nur auf Französisch-Schweizerdeutsch reagiert.",
-  "In Chile wurde ein Vulkankrater als Open-Air-Kino genutzt – mit Hitzeprojektion.",
-  "In den Niederlanden wurde ein Radweg gebaut, der nachts leuchtet – durch fluoreszierende Tulpenblätter.",
-  "In Malaysia wurde ein Dorf zur Zone erklärt, in der keine Selfies erlaubt sind – für mentale Gesundheit.",
-  "In Serbien wurde ein Bahnhof komplett unterirdisch gebaut, aber ohne Tunnelanschluss.",
-  "In Schottland wurde ein Schloss als „offizielles Hogwarts“ ausgezeichnet – wegen Fan-Voting.",
-  "In den Philippinen wurde ein Vulkan als Energiequelle für ein Thermal-WLAN-Projekt genutzt.",
-  "In der Slowakei wurde ein Fußballstadion gebaut, das beim Spiel die Zuschauer mit Sprüchen motiviert.",
-  "In Kroatien wurde eine Küste als Weltkulturerbe anerkannt – wegen ihrer Ähnlichkeit mit Spaghetti.",
-  "In Singapur gibt es einen Fußgängerübergang, der bei zu schnellem Gehen mit Seifenblasen bestraft.",
-  "In Irland wurde ein Kreisverkehr gebaut, in dessen Mitte dauerhaft ein Dudelsackspieler steht.",
-  "Ein Supermarkt führte eine „Schweigekasse“ für Kunden ohne Gesprächsbedarf ein.",
-  "Eine Schule verbot im Unterricht das Kauen von Karotten wegen zu lauten Knackgeräuschen.",
-  "Ein Zoo testete Musiktherapie bei gelangweilten Tieren – mit überraschendem Erfolg.",
-  "Ein Onlineversand sperrte Kunden, die zu oft Artikel in den Warenkorb legten, aber nie bestellten.",
-  "Ein Fitnessstudio bot „Anti-Sportkurse“ für Bewegungsverweigerer an.",
-  "Eine Gemeinde ersetzte Wahlplakate durch Duftproben der Kandidaten.",
-  "Eine Versicherung führte eine Police gegen „emotionale Schäden durch Reality-TV“ ein.",
-  "Ein Tech-Start-up entwickelte eine App, die das Nicken im Videocall automatisch simuliert.",
-  "Ein Kaffeeröster brachte eine Sorte auf den Markt, die angeblich nur bei Sonnenaufgang wirkt.",
-  "Eine Universität vergab ein Stipendium für besonders kreative Ausreden bei Verspätung.",
-  "Eine Stadt führte eine Steuervergünstigung für Leute mit besonders vielen Zimmerpflanzen ein.",
-  "Ein Restaurant testete eine geräuschlose Speisekarte – komplett ohne Schrift, nur mit Farben.",
-  "Ein Mobilfunkanbieter bot „Tarife für introvertierte Nutzer“ mit weniger Anrufen an.",
-  "Ein Verkehrsunternehmen führte eine „Plauderzone“ im Bus ein – inklusive Smalltalk-Begleiter.",
-  "Eine Firma führte eine Mittagspause mit verpflichtendem Powernap ein.",
-  "Ein Parkhaus experimentierte mit Duft-Markierungen statt Schildern.",
-  "Ein Verlag brachte ein Buch mit 200 leeren Seiten zum Thema „Meditatives Denken“ heraus.",
-  "Ein Konzert wurde ohne Musiker gespielt – nur mit den Geräuschen der wartenden Zuschauer.",
-  "Eine Online-Uni vergab ECTS-Punkte für besonders erfolgreiche Memes.",
-  "Eine Drogeriemarktkette testete beruhigende Hintergrundgeräusche auf den Kassenbändern.",
-  "Ein Bestattungsunternehmen bot Grabsteine mit LED-Ticker und Live-Wetterdaten an.",
-  "Ein Softwareanbieter veröffentlichte eine Tastatur mit integrierter Therapiefunktion.",
-  "Ein Kino zeigte 24 Stunden lang ausschließlich den Pausenbildschirm.",
-  "Ein Hotel verlangte extra Gebühren für Gäste, die mit Kissen reisen.",
-  "Ein Autovermieter führte ein Abo für Kunden ein, die nur im Stand Musik hören wollen.",
-  "Ein Möbelhersteller brachte einen Sessel mit WLAN-Blocker heraus – zur Entspannung.",
-  "Ein Museum für moderne Kunst zeigte 30 Tage lang nur QR-Codes ohne Erklärung.",
-  "Ein Radiosender spielte eine Woche lang ausschließlich Stille als Protestaktion.",
-  "Eine Zahnpastamarke brachte eine Geschmacksrichtung „kalte Pizza“ heraus.",
-  "Ein Uhrmacher verkaufte Uhren, die rückwärts liefen – gegen Stress.",
-  "Eine Tankstelle bot Preise nach Stimmung des Kassierers an.",
-  "Eine Bäckerei entwickelte ein Brötchen, das beim Reinbeißen einen Witz erzählt.",
-  "Ein Getränkekonzern testete Limonade mit beruhigendem Lavendelduft im Deckel.",
-  "Ein Fußballverein verpflichtete einen Mentalcoach für die Eckfahne.",
-  "Ein Streamingdienst bot einen Tarif nur für Menschen, die Serien nie zu Ende schauen.",
-  "Ein Reisebüro organisierte Überraschungsurlaube – Ziel erfährt man erst am Flughafen.",
-  "Ein Baumarkt eröffnete eine Selbsthilfegruppe für unvollendete Projekte.",
-  "Ein Supermarkt installierte Spiegel an den Einkaufswagen – gegen Impulskäufe.",
-  "Eine Firma belohnte Mitarbeitende, die im Homeoffice besonders selten online waren.",
-  "Eine App gab an, Emotionen von Topfpflanzen erkennen zu können.",
-  "Ein Freizeitpark baute ein Fahrgeschäft, das exakt nichts macht – „für Minimalisten“.",
-  "Eine Universität führte das Fach „Digitales Aus-dem-Fenster-Starren“ ein.",
-  "Ein Hörbuch wurde mit absichtlich falscher Betonung eingesprochen – als Experiment.",
-  "Eine Zeitung druckte eine Seite pro Tag absichtlich falsch herum – für aufmerksame Leser.",
-  "Eine Bibliothek stellte Bücher nach Laune statt nach Genre zusammen.",
-  "Ein Eiscafé bot Kugeln mit der Temperatur „Raumtemperatur Vanille“ an.",
-  "Eine Smartwatch warnt, wenn man „zu lange produktiv war“.",
-  "Eine Fahrschule führte einen Meditationskurs für Beifahrer ein.",
-  "Eine Sprachschule bot einen Kurs „Lügen überzeugend erzählen“ an – als Rollenspiel.",
-  "Eine Firma zahlte Boni für die kreativsten Gründe, nicht auf Meetings zu erscheinen."
-];
-      
+      "In Schweden wurde ein Gesetz beschlossen, das tägliches Saunieren an Arbeitsplätzen erlaubt.",
+      "In Kanada wurde ein Elch offiziell zum Bürgermeister eines Dorfes gewählt – als Protestaktion.",
+      "Japan führte versuchsweise „Stille Züge“ ein, in denen nicht gesprochen werden darf.",
+      "In Frankreich wurde ein Weinfestival mit Traubenballons statt Weingläsern gefeiert.",
+      "In Portugal gibt es angeblich eine U-Bahn-Station, die nur nachts und bei Vollmond hält."
+      // Du kannst hier beliebig viele Fake-Thesen ergänzen
+    ];
 
+    let allEvents = [...realEvents.map(t => ({ text: t, isReal: true })), ...fakeEvents.map(t => ({ text: t, isReal: false }))];
+    let availableEvents = [...allEvents];
+    let currentEvent = null;
     let score = 0;
-    const cardStack = document.getElementById("cardStack");
-    const scoreDisplay = document.getElementById("score");
-    const popup = document.getElementById("popup");
-    const finalScoreDisplay = document.getElementById("finalScore");
+
+    const card = document.getElementById('card');
+    const endScreen = document.getElementById('end-screen');
+    const endMessage = document.getElementById('end-message');
+    const scoreDisplay = document.getElementById('score');
 
     function getRandomEvent() {
-      const isReal = Math.random() < 0.5;
-      const text = isReal
-        ? realEvents[Math.floor(Math.random() * realEvents.length)]
-        : fakeEvents[Math.floor(Math.random() * fakeEvents.length)];
-      return { text, isReal };
+      if (availableEvents.length === 0) {
+        endGame("Alle Thesen geschafft!");
+        return null;
+      }
+      const index = Math.floor(Math.random() * availableEvents.length);
+      const e = availableEvents[index];
+      availableEvents.splice(index, 1);
+      return e;
     }
 
-    function createCard() {
-      const event = getRandomEvent();
-      const card = document.createElement("div");
-      card.className = "card";
-      card.textContent = event.text;
-      card.dataset.real = event.isReal;
-
-      let offsetX = 0, startX = 0;
-
-      card.addEventListener("touchstart", e => {
-        startX = e.touches[0].clientX;
-      });
-
-      card.addEventListener("touchmove", e => {
-        offsetX = e.touches[0].clientX - startX;
-        const rotation = offsetX / 15;
-        card.style.transform = `translateX(${offsetX}px) rotate(${rotation}deg)`;
-
-        if (offsetX < -60) {
-          card.classList.add("fake");
-          card.classList.remove("real");
-        } else if (offsetX > 60) {
-          card.classList.add("real");
-          card.classList.remove("fake");
-        } else {
-          card.classList.remove("fake", "real");
-        }
-      });
-
-      card.addEventListener("touchend", () => {
-        if (offsetX > 100) {
-          handleAnswer(card, true);
-        } else if (offsetX < -100) {
-          handleAnswer(card, false);
-        } else {
-          card.style.transform = "translateX(0px) rotate(0deg)";
-          card.classList.remove("fake", "real");
-        }
-      });
-
-      cardStack.innerHTML = ''; // Nur 1 Karte sichtbar
-      cardStack.appendChild(card);
-    }
-
-    function handleAnswer(card, guessedReal) {
-      const isReal = card.dataset.real === "true";
-      if (guessedReal === isReal) {
-        score++;
-        scoreDisplay.textContent = score;
-        card.style.transform = guessedReal
-          ? "translateX(200%) rotate(20deg)"
-          : "translateX(-200%) rotate(-20deg)";
-        card.style.opacity = 0;
-        setTimeout(() => {
-          card.remove();
-          createCard();
-        }, 300);
-      } else {
-        finalScoreDisplay.textContent = score;
-        popup.style.display = "flex";
+    function showEvent() {
+      currentEvent = getRandomEvent();
+      if (currentEvent) {
+        card.innerText = currentEvent.text;
+        card.style.transform = "translate(0, 0) rotate(0deg)";
+        card.style.backgroundColor = "#fff";
       }
     }
 
-    function restartGame() {
-      score = 0;
-      scoreDisplay.textContent = "0";
-      popup.style.display = "none";
-      cardStack.innerHTML = "";
-      createCard();
+    let startX = 0;
+
+    card.addEventListener('touchstart', e => {
+      startX = e.touches[0].clientX;
+    });
+
+    card.addEventListener('touchmove', e => {
+      const deltaX = e.touches[0].clientX - startX;
+      const rotate = deltaX * 0.1;
+      card.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg)`;
+      if (deltaX > 0) {
+        card.style.backgroundColor = '#d4fcd4'; // grün bei "echt"
+      } else {
+        card.style.backgroundColor = '#ffd6d6'; // rot bei "fake"
+      }
+    });
+
+    card.addEventListener('touchend', e => {
+      const deltaX = e.changedTouches[0].clientX - startX;
+      if (Math.abs(deltaX) > 100) {
+        const guessReal = deltaX > 0;
+        if (guessReal === currentEvent.isReal) {
+          score++;
+          scoreDisplay.innerText = `Punkte: ${score}`;
+          showEvent();
+        } else {
+          endGame("Falsch geraten!");
+        }
+      } else {
+        card.style.transform = "translate(0, 0) rotate(0deg)";
+        card.style.backgroundColor = "#fff";
+      }
+    });
+
+    function endGame(message) {
+      endScreen.classList.remove('hidden');
+      endMessage.innerText = `${message}\nDeine Punktzahl: ${score}`;
+      card.style.display = "none";
     }
 
-    // Spielstart
-    createCard();
+    showEvent();
   </script>
-
 </body>
 </html>
