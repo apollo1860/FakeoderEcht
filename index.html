@@ -1,79 +1,125 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Echt oder Fake?</title>
   <style>
     body {
       margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #6a11cb, #2575fc);
-      height: 100vh;
+      font-family: system-ui, sans-serif;
+      background: #f2f2f2;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      height: 100vh;
       overflow: hidden;
-      color: #fff;
     }
 
     .score {
       position: absolute;
       top: 20px;
-      font-size: 1.4em;
+      font-size: 1.2rem;
+      color: #555;
       font-weight: bold;
     }
 
     .card-container {
       width: 90%;
-      max-width: 600px;
-      height: 300px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      max-width: 350px;
+      height: 400px;
+      position: relative;
+      margin-top: 60px;
     }
 
     .card {
-      background: #ffffff;
-      color: #333;
+      background: white;
+      border-radius: 20px;
       padding: 30px;
-      border-radius: 16px;
-      font-size: 1.3em;
+      box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      font-size: 1.2rem;
       text-align: center;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease, opacity 0.3s ease, background 0.3s ease;
       user-select: none;
-      transition: transform 0.3s ease;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "❌ FAKE";
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      font-size: 1.2rem;
+      color: red;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .card::after {
+      content: "✅ ECHT";
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 1.2rem;
+      color: green;
+      font-weight: bold;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .card.left {
+      background: #ffe5e5;
+    }
+
+    .card.right {
+      background: #e5ffe5;
+    }
+
+    .card.left::before {
+      opacity: 1;
+    }
+
+    .card.right::after {
+      opacity: 1;
     }
 
     .popup {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background-color: rgba(255, 0, 0, 0.9);
+      background: rgba(255, 0, 0, 0.85);
+      color: white;
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 10;
+      z-index: 999;
     }
 
     .popup-content {
-      background: #fff;
-      padding: 30px;
-      border-radius: 14px;
+      background: white;
+      color: black;
+      padding: 25px;
+      border-radius: 12px;
       text-align: center;
-      max-width: 90%;
+      max-width: 80%;
       box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-      color: #222;
     }
 
     .popup-content button {
-      margin-top: 20px;
+      margin-top: 15px;
+      padding: 10px 20px;
+      font-size: 1rem;
       background: #27ae60;
       color: white;
-      padding: 12px 24px;
       border: none;
       border-radius: 8px;
-      font-size: 1rem;
       cursor: pointer;
     }
   </style>
@@ -88,7 +134,7 @@
 
   <div class="popup" id="popup">
     <div class="popup-content">
-      <h2>Falsch!</h2>
+      <h2>Falsch geraten!</h2>
       <p>Du hast <span id="finalScore">0</span> Punkt(e) erreicht.</p>
       <button onclick="restartGame()">Neu starten</button>
     </div>
@@ -100,23 +146,13 @@
       "Ein Pavian wurde in Südafrika als Zugbegleiter eingesetzt.",
       "Island verbot den Namen ‚Lucifer‘ offiziell.",
       "In Kanada wurde ein Elch als Trauzeuge eingetragen.",
-      "In Japan wurde ein Roboter zum Bürgermeisterkandidaten.",
-      "1993 gewann eine Katze einen Schönheitswettbewerb gegen 200 Hunde.",
-      "In Indien regnete es 2001 rot – Ursache unklar.",
-      "Ein Mann überlebte sieben Schiffsuntergänge und wurde Lotse.",
-      "In Island stoppte ein Straßenbau wegen Elfenprotesten.",
-      "In Frankreich fand ein Schneckenrennen mit 300 Teilnehmern statt."
+      "In Japan wurde ein Roboter zum Bürgermeisterkandidaten."
     ];
 
     const fakeEvents = [
       "In der Schweiz wurde ein Fußballspiel mit Ziegen als Schiedsrichter getestet.",
-      "Ein Künstler ließ sich ein drittes Ohr auf die Stirn implantieren.",
-      "In Dänemark existiert ein Park, in dem Pflanzen rückwärts wachsen.",
-      "In Kanada wurde ein Haus verurteilt, weil es zu symmetrisch war.",
-      "In Australien gibt es ein Hotel, in dem man singend schlafen muss.",
-      "In Rumänien wurde ein Tunnel zur Wasserrutsche umgebaut.",
       "In Polen dürfen Ampeln tanzen, wenn niemand hinsieht.",
-      "In Island wurde ein Vulkan als ‚Haus des Jahres‘ ausgezeichnet.",
+      "In Island wurde ein Vulkan als Haus des Jahres ausgezeichnet.",
       "In Griechenland ist Eulenrufen im Sommer verboten.",
       "In Peru wurde ein Berg zur Nationalflagge erklärt."
     ];
@@ -124,9 +160,9 @@
     let score = 0;
     let current = {};
     const card = document.getElementById("card");
-    const scoreDisplay = document.getElementById("score");
     const popup = document.getElementById("popup");
     const finalScoreDisplay = document.getElementById("finalScore");
+    const scoreDisplay = document.getElementById("score");
 
     function getNewEvent() {
       const isReal = Math.random() < 0.5;
@@ -139,12 +175,13 @@
     function showNewCard() {
       current = getNewEvent();
       card.textContent = current.text;
-      card.style.transform = "translateX(0px)";
+      card.style.transform = "translateX(0)";
+      card.classList.remove("left", "right");
     }
 
-    function handleAnswer(swipedRight) {
-      const guessIsReal = swipedRight;
-      if (guessIsReal === current.isReal) {
+    function handleAnswer(rightSwipe) {
+      const isCorrect = (rightSwipe === current.isReal);
+      if (isCorrect) {
         score++;
         scoreDisplay.textContent = score;
         showNewCard();
@@ -171,17 +208,21 @@
       const endX = e.changedTouches[0].clientX;
       const deltaX = endX - startX;
 
+      card.classList.remove("left", "right");
+
       if (deltaX > 80) {
-        card.style.transform = "translateX(150%)";
-        setTimeout(() => handleAnswer(true), 200);
+        card.classList.add("right");
+        card.style.transform = "translateX(150%) rotate(10deg)";
+        setTimeout(() => handleAnswer(true), 250);
       } else if (deltaX < -80) {
-        card.style.transform = "translateX(-150%)";
-        setTimeout(() => handleAnswer(false), 200);
+        card.classList.add("left");
+        card.style.transform = "translateX(-150%) rotate(-10deg)";
+        setTimeout(() => handleAnswer(false), 250);
       }
     });
 
-    // Start
     showNewCard();
   </script>
+
 </body>
 </html>
