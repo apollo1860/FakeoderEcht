@@ -1,0 +1,115 @@
+:root {
+  --green: #2ecc71;
+  --red: #e74c3c;
+  --blue-bg: #a0c4ff;
+}
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background-color: var(--blue-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.game-container {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#score {
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  animation: pop 0.3s ease-in-out;
+}
+
+#card-container {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+.card {
+  position: absolute;
+  width: 70%;
+  max-width: 240px;
+  height: 240px;
+  background: white;
+  border-radius: 16px;
+  padding: 24px 16px;
+  font-size: 18px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  user-select: none;
+  transition: transform 0.3s ease, background-color 0.2s ease;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.stack-2 {
+  transform: translateX(-50%) translateY(10px) scale(0.98);
+  z-index: -1;
+  opacity: 0.6;
+}
+
+.stack-3 {
+  transform: translateX(-50%) translateY(20px) scale(0.96);
+  z-index: -2;
+  opacity: 0.4;
+}
+
+/* Popup bei falscher Antwort */
+#end-screen {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #ffffffee;
+  border-radius: 16px;
+  padding: 30px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  display: none;
+}
+
+#end-screen.visible {
+  display: block;
+}
+
+#end-message {
+  font-size: 20px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+#end-screen button {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: var(--green);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
